@@ -1,0 +1,808 @@
+// =====================================================
+// 🔐 PASSWORD LOGIN — GANTI DI SINI
+const ADMIN_PASSWORD = "admin123";
+// =====================================================
+
+const COOKIE = "auth";
+
+const UI_HTML = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cron URL Manager</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--bd:#262b36;--tx:#e6e8eb;--mu:#8b93a7;
+--ac:#4f8cff;--dn:#ff5566;--ok:#34d399}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+background:var(--bg);color:var(--tx);line-height:1.5}
+.container{max-width:920px;margin:0 auto;padding:24px 16px 80px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+h1{font-size:20px;margin:0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:13px;margin:0 0 16px;color:var(--mu);font-weight:600;
+text-transform:uppercase;letter-spacing:.5px}
+label{display:block;font-size:13px;color:var(--mu);margin-bottom:6px}
+input[type=text],input[type=number],textarea{width:100%;padding:10px 12px;
+background:#0d0f14;border:1px solid var(--bd);border-radius:8px;color:var(--tx);
+font-size:14px;font-family:inherit}
+textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;
+resize:vertical;min-height:130px;letter-spacing:.5px}
+input:focus,textarea:focus{outline:none;border-color:var(--ac)}
+input.code{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px}
+button{padding:10px 16px;background:var(--ac);color:#fff;border:none;border-radius:8px;
+font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+button:hover{opacity:.9}
+button.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}
+button.danger{background:var(--dn)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.row>div{flex:1;min-width:140px}
+.row>button{flex:0 0 auto}
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab{padding:8px 14px;background:#0d0f14;border:1px solid var(--bd);border-radius:8px;
+font-size:13px;cursor:pointer;color:var(--mu);user-select:none}
+.tab.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.hint{font-size:12px;color:var(--mu);margin-top:8px;line-height:1.6}
+.hint code{background:#0d0f14;padding:2px 6px;border-radius:4px;
+font-family:ui-monospace,monospace;color:#c9d1d9;font-size:11px}
+.preview{background:#0d0f14;border:1px solid var(--bd);border-radius:8px;padding:12px;
+font-size:12px;color:var(--mu);margin-top:12px;font-family:ui-monospace,monospace}
+.preview b{color:var(--ok)}
+.url-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.url-item:last-child{border-bottom:none}
+.url-item .info{flex:1;min-width:180px}
+.url-item .name{font-weight:500}
+.url-item .link{color:var(--mu);font-size:12px;word-break:break-all}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;flex:0 0 auto}
+.badge.on{background:rgba(52,211,153,.15);color:var(--ok)}
+.badge.off{background:rgba(139,147,167,.15);color:var(--mu)}
+.log-item{padding:12px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.log-item:last-child{border-bottom:none}
+.log-meta{color:var(--mu);font-size:12px;margin-bottom:6px}
+.log-result{display:flex;gap:8px;padding:3px 0;font-family:ui-monospace,monospace;font-size:12px}
+.log-result .st{flex:0 0 auto;font-weight:600;width:70px}
+.log-result .u{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mu)}
+.st.ok{color:var(--ok)}.st.err{color:var(--dn)}
+.empty{color:var(--mu);text-align:center;padding:20px 0;font-size:14px}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+padding:10px 0;font-size:14px}
+.switch input{display:none}
+.switch .tr{width:40px;height:22px;background:var(--bd);border-radius:11px;position:relative;transition:background .2s}
+.switch .tr::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;
+background:#fff;border-radius:50%;transition:transform .2s}
+.switch input:checked+.tr{background:var(--ac)}
+.switch input:checked+.tr::after{transform:translateX(18px)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;
+padding:12px 20px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .3s;
+pointer-events:none;z-index:999;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.result-box{background:#0d0f14;border:1px solid var(--bd);border-radius:8px;
+padding:12px;font-size:12px;font-family:ui-monospace,monospace;margin-top:12px;max-height:200px;overflow:auto}
+.result-box .r-ok{color:var(--ok)}
+.result-box .r-err{color:var(--dn)}
+.result-box .r-mu{color:var(--mu)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+var app = document.getElementById("app");
+var state = {config:{mode:"interval",interval_minutes:30,cron_expression:"0 * * * *",enabled:true,last_run:0},urls:[],logs:[]};
+var editingId = null;
+var running = false;
+var addMode = "single";
+var bulkResult = null;
+
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function api(path,opts){
+  opts=opts||{};
+  opts.headers=Object.assign({"Content-Type":"application/json"},opts.headers||{});
+  return fetch(path,opts).then(function(r){
+    return r.json().then(function(j){
+      if(!r.ok) throw new Error(j.error || ("HTTP "+r.status));
+      return j;
+    });
+  });
+}
+function toast(msg){
+  var el=document.querySelector(".toast");
+  if(!el){el=document.createElement("div");el.className="toast";document.body.appendChild(el);}
+  el.textContent=msg;el.classList.add("show");
+  clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove("show");},2800);
+}
+function fmtTime(ts){
+  if(!ts) return "belum pernah";
+  return new Date(ts).toLocaleString("id-ID");
+}
+
+async function load(){
+  state = await api("/api/state");
+  render();
+}
+
+function renderUrlItem(u){
+  return '<div class="url-item" data-id="'+esc(u.id)+'">'+
+    '<span class="badge '+(u.enabled?"on":"off")+'">'+(u.enabled?"ON":"OFF")+'</span>'+
+    '<div class="info">'+
+      '<div class="name">'+esc(u.name)+'</div>'+
+      '<div class="link">'+esc(u.url)+'</div>'+
+    '</div>'+
+    '<button class="ghost" data-action="toggle">'+(u.enabled?"Matikan":"Aktifkan")+'</button>'+
+    '<button class="ghost" data-action="edit">Edit</button>'+
+    '<button class="danger" data-action="delete">Hapus</button>'+
+  '</div>';
+}
+
+function renderLog(log){
+  return '<div class="log-item">'+
+    '<div class="log-meta">'+fmtTime(log.ts)+' &middot; '+log.results.length+' URL &middot; '+(log.trigger||"")+'</div>'+
+    log.results.map(function(r){
+      var st = r.status || "ERR";
+      var cls = r.ok ? "ok" : "err";
+      var icon = r.ok ? "\\u2713" : "\\u2717";
+      return '<div class="log-result">'+
+        '<span class="st '+cls+'">'+icon+' '+st+'</span>'+
+        '<span class="u">'+esc(r.url)+'</span>'+
+      '</div>';
+    }).join("")+
+  '</div>';
+}
+
+function renderBulkResult(){
+  if(!bulkResult) return "";
+  var r = bulkResult;
+  var html = '<div class="result-box">';
+  html += '<div class="r-ok">\\u2713 Ditambahkan: '+r.added+'</div>';
+  if(r.skipped > 0) html += '<div class="r-err">\\u2717 Dilewati: '+r.skipped+'</div>';
+  if(r.errors && r.errors.length){
+    html += '<div style="margin-top:6px" class="r-mu">Detail yang dilewati:</div>';
+    r.errors.forEach(function(e){
+      html += '<div class="r-err">\\u2022 '+esc(e)+'</div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+function render(){
+  var c=state.config;
+  var editing = editingId ? state.urls.find(function(x){return x.id===editingId;}) : null;
+  var mode = c.mode || "interval";
+
+  var singleForm =
+    '<form id="url-form">'+
+      '<div class="row">'+
+        '<div><label>Nama (opsional)</label>'+
+          '<input type="text" id="name" placeholder="Contoh: Homepage" value="'+(editing?esc(editing.name):"")+'"></div>'+
+        '<div><label>URL (bebas format)</label>'+
+          '<input type="text" id="url" class="code" placeholder="google.com atau http://example.com" required value="'+(editing?esc(editing.url):"")+'"></div>'+
+        '<button type="submit">'+(editingId?"Update":"Tambah")+'</button>'+
+        (editingId?'<button type="button" class="ghost" id="cancel-edit">Batal</button>':"")+
+      '</div>'+
+      '<div class="hint">Format diterima: <code>google.com</code>, <code>http://situs.com</code>, <code>https://api.com/path</code>, <code>192.168.1.1:8080</code></div>'+
+    '</form>';
+
+  var bulkForm =
+    '<form id="bulk-form">'+
+      '<div>'+
+        '<label>Daftar URL (satu per baris)</label>'+
+        '<textarea id="bulk-urls" placeholder="google.com&#10;https://example.com/api&#10;http://situs.com/health"></textarea>'+
+      '</div>'+
+      '<div style="margin-top:12px">'+
+        '<label>Format Penamaan (opsional)</label>'+
+        '<input type="text" id="bulk-pattern" class="code" placeholder="Kosong = auto dari hostname">'+
+        '<div class="hint">'+
+          'Placeholder: '+
+          '<code>{host}</code> contoh.com &middot; '+
+          '<code>{path}</code> /a/b &middot; '+
+          '<code>{query}</code> ?x=1 &middot; '+
+          '<code>{n}</code> nomor urut &middot; '+
+          '<code>{date}</code> 2026-09-27 &middot; '+
+          '<code>{time}</code> 153045 &middot; '+
+          '<code>{rand}</code> acak 4 char<br>'+
+          'Contoh: <code>[{n}] {host}{path}</code> &rarr; <code>[1] google.com/search</code><br>'+
+          'Atau prefix/suffix bebas: <code>Site-{n}</code> &rarr; <code>Site-1</code>, <code>Site-2</code>, ...'+
+        '</div>'+
+      '</div>'+
+      '<div class="row" style="margin-top:16px">'+
+        '<button type="submit">Tambah Semua</button>'+
+      '</div>'+
+      renderBulkResult()+
+    '</form>';
+
+  app.innerHTML =
+    '<div class="container">'+
+      '<header>'+
+        '<h1>\\u2699\\uFE0F Cron URL Manager</h1>'+
+        '<button class="ghost" id="logout">Logout</button>'+
+      '</header>'+
+
+      '<div class="card">'+
+        '<h2>Jadwal Eksekusi</h2>'+
+        '<div class="tabs">'+
+          '<div class="tab '+(mode==="interval"?"active":"")+'" data-mode="interval">\\u23F1 Interval</div>'+
+          '<div class="tab '+(mode==="cron"?"active":"")+'" data-mode="cron">\\uD83D\\uDD52 Cron Expression</div>'+
+        '</div>'+
+
+        (mode==="interval" ?
+          '<div class="row">'+
+            '<div>'+
+              '<label>Interval (menit)</label>'+
+              '<input type="number" id="interval" min="1" value="'+c.interval_minutes+'">'+
+            '</div>'+
+          '</div>'+
+          '<div class="hint">Worker akan mengakses semua URL setiap <b>'+c.interval_minutes+' menit</b> sekali.</div>'
+          :
+          '<div class="row">'+
+            '<div>'+
+              '<label>Cron Expression (5 field, UTC)</label>'+
+              '<input type="text" id="cron" class="code" placeholder="0 8,20 * * *" value="'+esc(c.cron_expression||"0 * * * *")+'">'+
+            '</div>'+
+          '</div>'+
+          '<div class="hint">'+
+            'Format: <code>menit jam hari bulan hari-minggu</code><br>'+
+            'Contoh: <code>0 * * * *</code> = tiap jam tepat &middot; '+
+            '<code>*/15 * * * *</code> = tiap 15 menit<br>'+
+            '<code>0 8,20 * * *</code> = jam 08:00 & 20:00 tiap hari &middot; '+
+            '<code>0 9 * * 1-5</code> = 09:00 Senin-Jumat<br>'+
+            '<span style="color:var(--mu)">Semua waktu <b>UTC</b>. WIB = UTC+7.</span>'+
+          '</div>'
+        )+
+
+        '<div class="row" style="margin-top:16px">'+
+          '<div>'+
+            '<label>Status Global</label>'+
+            '<label class="switch"><input type="checkbox" id="enabled" '+(c.enabled?"checked":"")+'>'+
+            '<span class="tr"></span><span>'+(c.enabled?"Aktif":"Nonaktif")+'</span></label>'+
+          '</div>'+
+          '<button id="save-config">Simpan Jadwal</button>'+
+          '<button id="run-now" class="ghost" '+(running?"disabled":"")+'>'+
+            (running?"Menjalankan...":"\\u25B6 Jalankan Sekarang")+
+          '</button>'+
+        '</div>'+
+
+        '<div class="preview">'+
+          'Mode aktif: <b>'+(mode==="interval"?("Interval "+c.interval_minutes+" menit"):("Cron: "+esc(c.cron_expression)))+'</b><br>'+
+          'Terakhir dijalankan: '+fmtTime(c.last_run)+
+        '</div>'+
+      '</div>'+
+
+      '<div class="card">'+
+        '<h2>'+(editingId?"Edit URL":"Tambah URL")+'</h2>'+
+        (editingId ? "" :
+          '<div class="tabs">'+
+            '<div class="tab '+(addMode==="single"?"active":"")+'" data-addmode="single">\\u2795 Single</div>'+
+            '<div class="tab '+(addMode==="bulk"?"active":"")+'" data-addmode="bulk">\\uD83D\\uDCDA Bulk</div>'+
+          '</div>'
+        )+
+        (editingId || addMode==="single" ? singleForm : bulkForm)+
+      '</div>'+
+
+      '<div class="card">'+
+        '<h2>Daftar URL ('+state.urls.length+')</h2>'+
+        '<div id="url-list">'+
+          (state.urls.length===0
+            ? '<div class="empty">Belum ada URL. Tambahkan di atas.</div>'
+            : state.urls.map(renderUrlItem).join(""))+
+        '</div>'+
+      '</div>'+
+
+      '<div class="card">'+
+        '<h2>Log Terakhir</h2>'+
+        '<div id="log-list">'+
+          (state.logs.length===0
+            ? '<div class="empty">Belum ada log.</div>'
+            : state.logs.map(renderLog).join(""))+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+  bind();
+}
+
+function bind(){
+  document.getElementById("logout").onclick = async function(){
+    await fetch("/api/logout",{method:"POST"});
+    location.reload();
+  };
+
+  document.querySelectorAll(".tab[data-mode]").forEach(function(el){
+    el.onclick = function(){
+      var m = el.dataset.mode;
+      if(m === state.config.mode) return;
+      state.config.mode = m;
+      render();
+    };
+  });
+
+  document.querySelectorAll(".tab[data-addmode]").forEach(function(el){
+    el.onclick = function(){
+      var m = el.dataset.addmode;
+      if(m === addMode) return;
+      addMode = m;
+      bulkResult = null;
+      render();
+    };
+  });
+
+  document.getElementById("save-config").onclick = async function(){
+    var body = {
+      mode: state.config.mode,
+      enabled: document.getElementById("enabled").checked,
+    };
+    if(body.mode === "interval"){
+      body.interval_minutes = parseInt(document.getElementById("interval").value)||30;
+    } else {
+      body.cron_expression = document.getElementById("cron").value.trim();
+      if(!body.cron_expression){ toast("Cron expression tidak boleh kosong"); return; }
+      if(body.cron_expression.split(/\\s+/).length !== 5){
+        toast("Cron harus 5 field: menit jam hari bulan dow"); return;
+      }
+    }
+    try{
+      await api("/api/config",{method:"POST",body:JSON.stringify(body)});
+      toast("Jadwal disimpan");
+      await load();
+    }catch(e){ toast(e.message); }
+  };
+
+  document.getElementById("run-now").onclick = async function(){
+    running=true; render();
+    try{
+      var r = await api("/api/run",{method:"POST"});
+      var ok = r.results.filter(function(x){return x.ok;}).length;
+      toast("Selesai: "+ok+"/"+r.results.length+" sukses");
+    }catch(e){ toast("Gagal: "+e.message); }
+    running=false;
+    await load();
+  };
+
+  var singleForm = document.getElementById("url-form");
+  if(singleForm){
+    singleForm.onsubmit = async function(e){
+      e.preventDefault();
+      var name=document.getElementById("name").value.trim();
+      var url=document.getElementById("url").value.trim();
+      try{
+        if(editingId){
+          await api("/api/urls/"+editingId,{method:"PUT",body:JSON.stringify({name:name,url:url})});
+          editingId=null; toast("URL diupdate");
+        }else{
+          await api("/api/urls",{method:"POST",body:JSON.stringify({name:name,url:url})});
+          toast("URL ditambahkan");
+        }
+        await load();
+      }catch(e){ toast(e.message); }
+    };
+  }
+
+  var bulkForm = document.getElementById("bulk-form");
+  if(bulkForm){
+    bulkForm.onsubmit = async function(e){
+      e.preventDefault();
+      var text = document.getElementById("bulk-urls").value;
+      var pattern = document.getElementById("bulk-pattern").value.trim();
+      var lines = text.split(/\\r?\\n/).map(function(l){return l.trim();}).filter(Boolean);
+      if(lines.length === 0){ toast("Belum ada URL"); return; }
+      try{
+        var r = await api("/api/urls/bulk",{
+          method:"POST",
+          body:JSON.stringify({ urls: lines, pattern: pattern }),
+        });
+        bulkResult = r;
+        toast("Ditambahkan "+r.added+" URL"+(r.skipped?" &middot; "+r.skipped+" dilewati":""));
+        await load();
+      }catch(e){ toast(e.message); }
+    };
+  }
+
+  var cancel=document.getElementById("cancel-edit");
+  if(cancel) cancel.onclick=function(){ editingId=null; render(); };
+
+  var urlList = document.getElementById("url-list");
+  if(urlList){
+    urlList.onclick = async function(e){
+      var btn=e.target.closest("button[data-action]");
+      if(!btn) return;
+      var item=e.target.closest(".url-item");
+      var id=item.dataset.id;
+      var action=btn.dataset.action;
+      var u=state.urls.find(function(x){return x.id===id;});
+
+      if(action==="edit"){ editingId=id; addMode="single"; render(); }
+      else if(action==="delete"){
+        if(!confirm("Hapus URL ini?")) return;
+        await api("/api/urls/"+id,{method:"DELETE"});
+        toast("URL dihapus"); await load();
+      }
+      else if(action==="toggle"){
+        await api("/api/urls/"+id,{method:"PUT",body:JSON.stringify({enabled:!u.enabled})});
+        await load();
+      }
+    };
+  }
+}
+
+load();
+})();
+</script>
+</body>
+</html>`;
+
+const LOGIN_HTML = (error = "") => `<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Login</title>
+<style>
+body{margin:0;font-family:-apple-system,sans-serif;background:#0f1115;color:#e6e8eb;
+display:flex;align-items:center;justify-content:center;min-height:100vh}
+.card{background:#171a21;border:1px solid #262b36;border-radius:12px;padding:28px;width:100%;max-width:340px}
+h1{margin:0 0 20px;font-size:18px}
+label{display:block;font-size:13px;color:#8b93a7;margin-bottom:6px}
+input{width:100%;padding:10px 12px;background:#0d0f14;border:1px solid #262b36;border-radius:8px;color:#e6e8eb;font-size:14px;box-sizing:border-box}
+input:focus{outline:none;border-color:#4f8cff}
+button{width:100%;margin-top:16px;padding:10px;background:#4f8cff;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer}
+.err{color:#ff5566;font-size:13px;margin-top:10px}
+</style></head><body>
+<form class="card" method="POST" action="/login">
+<h1>&#128274; Cron URL Manager</h1>
+<label>Password</label>
+<input type="password" name="password" required autofocus>
+<button>Masuk</button>
+${error ? `<div class="err">${error}</div>` : ""}
+</form></body></html>`;
+
+// ============ URL NORMALIZER ============
+function normalizeUrl(input) {
+  if (!input) return null;
+  let u = String(input).trim().replace(/\s+/g, "");
+  if (!u) return null;
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(u)) u = "https://" + u;
+  try {
+    const parsed = new URL(u);
+    if (!parsed.hostname) return null;
+    if (
+      parsed.hostname !== "localhost" &&
+      !parsed.hostname.includes(".") &&
+      !/^\d+\.\d+\.\d+\.\d+$/.test(parsed.hostname)
+    ) return null;
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+// ============ NAME FORMATTER ============
+function formatName(pattern, url, index) {
+  let u;
+  try { u = new URL(url); } catch { return url; }
+
+  if (!pattern || !pattern.trim()) {
+    const path = u.pathname && u.pathname !== "/" ? u.pathname : "";
+    return u.hostname + path;
+  }
+
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return pattern
+    .replace(/\{host\}/g, u.hostname)
+    .replace(/\{path\}/g, u.pathname)
+    .replace(/\{query\}/g, u.search)
+    .replace(/\{n\}/g, String(index + 1))
+    .replace(/\{date\}/g, `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`)
+    .replace(/\{time\}/g, `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`)
+    .replace(/\{rand\}/g, Math.random().toString(36).slice(2, 6))
+    .trim() || u.hostname;
+}
+
+// ============ CRON MATCHER ============
+function fieldMatch(field, value, min, max) {
+  if (field === "*" || field === "?") return true;
+  for (const part of field.split(",")) {
+    let step = 1;
+    let range = part;
+    if (part.includes("/")) {
+      const [r, s] = part.split("/");
+      range = r;
+      step = parseInt(s, 10);
+      if (!step || step < 1) continue;
+    }
+    let start, end;
+    if (range === "*" || range === "") {
+      start = min; end = max;
+    } else if (range.includes("-")) {
+      const [a, b] = range.split("-").map(Number);
+      start = a; end = b;
+    } else {
+      start = end = parseInt(range, 10);
+    }
+    for (let i = start; i <= end; i += step) if (i === value) return true;
+  }
+  return false;
+}
+
+function cronMatches(expr, date) {
+  const p = expr.trim().split(/\s+/);
+  if (p.length !== 5) return false;
+  return (
+    fieldMatch(p[0], date.getUTCMinutes(), 0, 59) &&
+    fieldMatch(p[1], date.getUTCHours(), 0, 23) &&
+    fieldMatch(p[2], date.getUTCDate(), 1, 31) &&
+    fieldMatch(p[3], date.getUTCMonth() + 1, 1, 12) &&
+    fieldMatch(p[4], date.getUTCDay(), 0, 6)
+  );
+}
+
+function minuteKey(date) {
+  return date.toISOString().slice(0, 16);
+}
+
+// ============ AUTH ============
+async function sha256(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function checkAuth(request) {
+  const cookie = request.headers.get("Cookie") || "";
+  const m = cookie.match(new RegExp(COOKIE + "=([^;]+)"));
+  if (!m) return false;
+  return m[1] === (await sha256(ADMIN_PASSWORD));
+}
+
+// ============ KV HELPERS ============
+const DEFAULT_CONFIG = {
+  mode: "interval",
+  interval_minutes: 30,
+  cron_expression: "0 * * * *",
+  enabled: true,
+  last_run: 0,
+  last_run_minute: "",
+};
+
+const getConfig = async (env) => ({
+  ...DEFAULT_CONFIG,
+  ...JSON.parse((await env.KV.get("config")) || "{}"),
+});
+
+const getUrls = async (env) => JSON.parse((await env.KV.get("urls")) || "[]");
+const getLogs = async (env) => JSON.parse((await env.KV.get("logs")) || "[]");
+
+// ============ RUN ============
+async function runNow(env, trigger = "manual") {
+  const urls = (await getUrls(env)).filter((u) => u.enabled);
+  const results = [];
+
+  for (const u of urls) {
+    try {
+      const res = await fetch(u.url, {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+          "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
+        },
+      });
+      results.push({ id: u.id, url: u.url, status: res.status, ok: res.ok });
+    } catch (e) {
+      results.push({ id: u.id, url: u.url, status: 0, ok: false, error: e.message });
+    }
+  }
+
+  const config = await getConfig(env);
+  config.last_run = Date.now();
+  config.last_run_minute = minuteKey(new Date());
+  await env.KV.put("config", JSON.stringify(config));
+
+  const logs = await getLogs(env);
+  logs.unshift({ ts: Date.now(), trigger, results });
+  await env.KV.put("logs", JSON.stringify(logs.slice(0, 20)));
+
+  return { ok: true, results };
+}
+
+// ============ API ============
+async function handleApi(request, env, url) {
+  const path = url.pathname;
+  const method = request.method;
+  const json = (data, status = 200) =>
+    new Response(JSON.stringify(data), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+
+  if (path === "/api/state" && method === "GET") {
+    const [config, urls, logs] = await Promise.all([
+      getConfig(env),
+      getUrls(env),
+      getLogs(env),
+    ]);
+    return json({ config, urls, logs });
+  }
+
+  if (path === "/api/config" && method === "POST") {
+    const body = await request.json();
+    const config = await getConfig(env);
+    if (body.mode === "cron" || body.mode === "interval") config.mode = body.mode;
+    if (body.interval_minutes !== undefined)
+      config.interval_minutes = Math.max(1, parseInt(body.interval_minutes) || 30);
+    if (body.cron_expression !== undefined)
+      config.cron_expression = String(body.cron_expression).trim().slice(0, 100);
+    if (body.enabled !== undefined) config.enabled = !!body.enabled;
+    await env.KV.put("config", JSON.stringify(config));
+    return json({ ok: true, config });
+  }
+
+  if (path === "/api/urls" && method === "POST") {
+    const body = await request.json();
+    const normalized = normalizeUrl(body.url);
+    if (!normalized) return json({ error: "URL tidak valid" }, 400);
+    const urls = await getUrls(env);
+    urls.push({
+      id: crypto.randomUUID(),
+      name: (body.name || "").trim() || normalized,
+      url: normalized,
+      enabled: true,
+    });
+    await env.KV.put("urls", JSON.stringify(urls));
+    return json({ ok: true, urls });
+  }
+
+  // ============ BULK ADD ============
+  if (path === "/api/urls/bulk" && method === "POST") {
+    const body = await request.json();
+    const list = Array.isArray(body.urls) ? body.urls : [];
+    const pattern = String(body.pattern || "").trim();
+
+    if (list.length === 0) return json({ error: "Tidak ada URL dikirim" }, 400);
+    if (list.length > 500) return json({ error: "Maks 500 URL per bulk (dikirim " + list.length + ")" }, 400);
+
+    const urls = await getUrls(env);
+    const existing = new Set(urls.map((u) => u.url));
+
+    let added = 0, skipped = 0;
+    const errors = [];
+
+    for (let i = 0; i < list.length; i++) {
+      const raw = String(list[i]).trim();
+      if (!raw) continue;
+      const normalized = normalizeUrl(raw);
+      if (!normalized) {
+        skipped++;
+        errors.push("Invalid: " + raw.slice(0, 80));
+        continue;
+      }
+      if (existing.has(normalized)) {
+        skipped++;
+        errors.push("Duplikat: " + normalized.slice(0, 80));
+        continue;
+      }
+      urls.push({
+        id: crypto.randomUUID(),
+        name: formatName(pattern, normalized, i),
+        url: normalized,
+        enabled: true,
+      });
+      existing.add(normalized);
+      added++;
+    }
+
+    await env.KV.put("urls", JSON.stringify(urls));
+    return json({
+      ok: true,
+      added,
+      skipped,
+      errors: errors.slice(0, 20),
+      urls,
+    });
+  }
+
+  const m = path.match(/^\/api\/urls\/([^/]+)$/);
+  if (m) {
+    const id = m[1];
+    const urls = await getUrls(env);
+    const i = urls.findIndex((u) => u.id === id);
+    if (i === -1) return json({ error: "Tidak ditemukan" }, 404);
+
+    if (method === "PUT") {
+      const body = await request.json();
+      const patch = { ...body };
+      if (patch.url !== undefined) {
+        const normalized = normalizeUrl(patch.url);
+        if (!normalized) return json({ error: "URL tidak valid" }, 400);
+        patch.url = normalized;
+      }
+      if (patch.name !== undefined)
+        patch.name = String(patch.name).trim() || patch.url || urls[i].url;
+      urls[i] = { ...urls[i], ...patch, id };
+      await env.KV.put("urls", JSON.stringify(urls));
+      return json({ ok: true, urls });
+    }
+    if (method === "DELETE") {
+      urls.splice(i, 1);
+      await env.KV.put("urls", JSON.stringify(urls));
+      return json({ ok: true, urls });
+    }
+  }
+
+  if (path === "/api/run" && method === "POST") {
+    return json(await runNow(env, "manual"));
+  }
+
+  if (path === "/api/logout" && method === "POST") {
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": "auth=; Path=/; Max-Age=0",
+      },
+    });
+  }
+
+  return json({ error: "Not found" }, 404);
+}
+
+// ============ MAIN ============
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/login" && request.method === "POST") {
+      const form = await request.formData();
+      if (form.get("password") === ADMIN_PASSWORD) {
+        const token = await sha256(ADMIN_PASSWORD);
+        return new Response(null, {
+          status: 302,
+          headers: {
+            Location: "/",
+            "Set-Cookie": `${COOKIE}=${token}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`,
+          },
+        });
+      }
+      return new Response(LOGIN_HTML("Password salah"), {
+        status: 401,
+        headers: { "Content-Type": "text/html;charset=utf-8" },
+      });
+    }
+
+    if (!(await checkAuth(request))) {
+      return new Response(LOGIN_HTML(), {
+        headers: { "Content-Type": "text/html;charset=utf-8" },
+      });
+    }
+
+    if (url.pathname.startsWith("/api/")) return handleApi(request, env, url);
+
+    return new Response(UI_HTML, {
+      headers: { "Content-Type": "text/html;charset=utf-8" },
+    });
+  },
+
+  async scheduled(event, env, ctx) {
+    const config = await getConfig(env);
+    if (!config.enabled) return;
+
+    const now = new Date();
+    const thisMinute = minuteKey(now);
+    if (config.last_run_minute === thisMinute) return;
+
+    let shouldRun = false;
+    if (config.mode === "cron") {
+      shouldRun = cronMatches(config.cron_expression, now);
+    } else {
+      const elapsed = Date.now() - (config.last_run || 0);
+      shouldRun = elapsed >= config.interval_minutes * 60_000;
+    }
+
+    if (shouldRun) {
+      await runNow(env, config.mode === "cron" ? "cron" : "interval");
+    }
+  },
+};
